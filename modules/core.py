@@ -32,7 +32,7 @@ import cv2
 def list_cameras(max_devices=5):
     available = []
     for i in range(max_devices):
-        cap = cv2.VideoCapture(i)
+        cap = cv2.VideoCapture(1, cv2.CAP_AVFOUNDATION)
         if cap.isOpened():
             available.append(i)
             cap.release()
