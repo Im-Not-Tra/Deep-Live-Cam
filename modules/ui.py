@@ -89,12 +89,11 @@ def init(start: Callable[[], None], destroy: Callable[[], None], lang: str) -> c
 
     return ROOT
 
-import cv2
 
 def list_cameras(max_devices=5):
     available = []
     for i in range(max_devices):
-        cap = cv2.VideoCapture(i)
+        cap = cv2.VideoCapture(1, cv2.CAP_AVFOUNDATION)
         if cap.isOpened():
             available.append(i)
             cap.release()
@@ -852,7 +851,7 @@ def get_available_cameras():
 
         if platform.system() == "Darwin":  # macOS specific handling
             # Try to open the default FaceTime camera first
-            cap = cv2.VideoCapture(1, cv2.CAP_AVFOUNDATION)
+            cap = cv2.VideoCapture(i)
             if cap.isOpened():
                 camera_indices.append(0)
                 camera_names.append("FaceTime Camera")
@@ -860,7 +859,7 @@ def get_available_cameras():
 
             # On macOS, additional cameras typically use indices 1 and 2
             for i in [1, 2]:
-                cap = cv2.VideoCapture(i)
+                cap = cv2.VideoCapture(1, cv2.CAP_AVFOUNDATION)
                 if cap.isOpened():
                     camera_indices.append(i)
                     camera_names.append(f"Camera {i}")
