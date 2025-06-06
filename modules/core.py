@@ -14,7 +14,6 @@ import argparse
 import torch
 import onnxruntime
 import tensorflow
-import cv2
 
 import modules.globals
 import modules.metadata
