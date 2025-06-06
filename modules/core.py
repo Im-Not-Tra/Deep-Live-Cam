@@ -26,18 +26,6 @@ if 'ROCMExecutionProvider' in modules.globals.execution_providers:
 
 warnings.filterwarnings('ignore', category=FutureWarning, module='insightface')
 warnings.filterwarnings('ignore', category=UserWarning, module='torchvision')
-import cv2
-
-def list_cameras(max_devices=5):
-    available = []
-    for i in range(max_devices):
-        cap = cv2.VideoCapture(1, cv2.CAP_AVFOUNDATION)
-        if cap.isOpened():
-            available.append(i)
-            cap.release()
-    return available
-
-print("Available camera devices:", list_cameras())
 
 
 def parse_args() -> None:
