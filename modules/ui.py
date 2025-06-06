@@ -852,7 +852,7 @@ def get_available_cameras():
 
         if platform.system() == "Darwin":  # macOS specific handling
             # Try to open the default FaceTime camera first
-            cap = cv2.VideoCapture(0)
+            cap = cv2.VideoCapture(1, cv2.CAP_AVFOUNDATION)
             if cap.isOpened():
                 camera_indices.append(0)
                 camera_names.append("FaceTime Camera")
