@@ -89,6 +89,18 @@ def init(start: Callable[[], None], destroy: Callable[[], None], lang: str) -> c
 
     return ROOT
 
+import cv2
+
+def list_cameras(max_devices=5):
+    available = []
+    for i in range(max_devices):
+        cap = cv2.VideoCapture(i)
+        if cap.isOpened():
+            available.append(i)
+            cap.release()
+    return available
+
+print("Available camera devices:", list_cameras())
 
 def save_switch_states():
     switch_states = {
