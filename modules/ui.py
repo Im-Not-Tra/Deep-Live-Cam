@@ -798,74 +798,78 @@ def webcam_preview(root: ctk.CTk, camera_index: int):
 
 
 
-def get_available_cameras():
-    """Returns a list of available camera names and indices."""
-    if platform.system() == "Windows":
-        try:
-            graph = FilterGraph()
-            devices = graph.get_input_devices()
 
-            # Create list of indices and names
+def get_available_cameras():
+    """Returns a tuple of (camera_indices, camera_names) available on the system."""
+
+    system_name = platform.system()
+
+    if system_name == "Windows":
+        try:
+            from pygrabber.dshow_graph import FilterGraph  # Make sure pygrabber is installed
+            graph = FilterGraph()
+            devices = graph.get_input_devices()  # List of camera names
+
             camera_indices = list(range(len(devices)))
             camera_names = devices
 
-            # If no cameras found through DirectShow, try OpenCV fallback
+            # If no cameras found through DirectShow, fallback to OpenCV test
             if not camera_names:
-                # Try to open camera with index -1 and 0
-                test_indices = [-1, 0]
+                test_indices = [0, 1]  # Testing first two indices
                 working_cameras = []
+                working_indices = []
 
                 for idx in test_indices:
-                    cap = cv2.VideoCapture(idx)
+                    cap = cv2.VideoCapture(idx, cv2.CAP_DSHOW)  # Windows backend
                     if cap.isOpened():
                         working_cameras.append(f"Camera {idx}")
-                        cap.release()
+                        working_indices.append(idx)
+                    cap.release()
 
                 if working_cameras:
-                    return test_indices[: len(working_cameras)], working_cameras
+                    return working_indices, working_cameras
 
-            # If still no cameras found, return empty lists
             if not camera_names:
                 return [], ["No cameras found"]
 
             return camera_indices, camera_names
 
+        except ImportError:
+            print("pygrabber not installed, falling back to OpenCV method on Windows.")
+            # Fall through to OpenCV fallback below
         except Exception as e:
-            print(f"Error detecting cameras: {str(e)}")
+            print(f"Error detecting cameras with pygrabber: {e}")
             return [], ["No cameras found"]
-    else:
-        # Unix-like systems (Linux/Mac) camera detection
-        camera_indices = []
-        camera_names = []
 
-        if platform.system() == "Darwin":  # macOS specific handling
-            # Try to open the default FaceTime camera first
-            cap = cv2.VideoCapture(0)
+    # For macOS and Linux - fallback OpenCV detection
+
+    camera_indices = []
+    camera_names = []
+
+    if system_name == "Darwin":  # macOS
+        # FaceTime default camera is usually at 0
+        for i in range(3):  # Check indices 0,1,2 as common macOS cameras
+            cap = cv2.VideoCapture(i, cv2.CAP_AVFOUNDATION)
             if cap.isOpened():
-                camera_indices.append(0)
-                camera_names.append("FaceTime Camera")
-                cap.release()
-
-            # On macOS, additional cameras typically use indices 1 and 2
-            for i in [1, 2]:
-                cap = cv2.VideoCapture(i)
-                if cap.isOpened():
-                    camera_indices.append(i)
+                camera_indices.append(i)
+                if i == 0:
+                    camera_names.append("FaceTime Camera")
+                else:
                     camera_names.append(f"Camera {i}")
-                    cap.release()
-        else:
-            # Linux camera detection - test first 10 indices
-            for i in range(10):
-                cap = cv2.VideoCapture(i)
-                if cap.isOpened():
-                    camera_indices.append(i)
-                    camera_names.append(f"Camera {i}")
-                    cap.release()
+            cap.release()
 
-        if not camera_names:
-            return [], ["No cameras found"]
+    else:  # Linux and other Unix-like
+        for i in range(10):
+            cap = cv2.VideoCapture(i)
+            if cap.isOpened():
+                camera_indices.append(i)
+                camera_names.append(f"Camera {i}")
+            cap.release()
 
-        return camera_indices, camera_names
+    if not camera_names:
+        return [], ["No cameras found"]
+
+    return camera_indices, camera_names
 
 
 def create_webcam_preview(camera_index: int):
